@@ -88,7 +88,10 @@ Board readBoardFile(string fileName) {
 }
 
 // FIXME
-Board search(const Board& board, const Coordinate& start, const Coordinate& goal) {
+Board search(Board& board, const Coordinate& start, const Coordinate& goal) {
+    vector<Node> openNodes;
+    Node node(start.first, start.second, 0, heuristic(start, goal));
+    addToOpen(node, openNodes, board);
     cout << "No path found!" << endl;
     Board path;
     return path;
