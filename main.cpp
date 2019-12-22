@@ -15,11 +15,26 @@ using std::istringstream;
 using std::pair;
 using std::abs;
 
-enum State { kEmpty, kObstacle };
+enum State { kEmpty, kObstacle, kClosed };
 typedef vector< vector<State> > Board;
 typedef pair<int, int> Coordinate;
 typedef vector<State> Line;
 
+class Node {
+    public:
+    Node(int x, int y, int g, int h):
+    x(x), 
+    y(y), 
+    g(g), 
+    h(h) {}
+
+    int x;
+    int y;
+    int g;
+    int h;
+};
+
+// FIXME: handling kClosed
 string cellString(State state) {
     string cell;
     switch (state)
@@ -72,14 +87,20 @@ Board readBoardFile(string fileName) {
     return board;
 }
 
-Board search(Board board, Coordinate start, Coordinate goal) {
+// FIXME
+Board search(const Board& board, const Coordinate& start, const Coordinate& goal) {
     cout << "No path found!" << endl;
     Board path;
     return path;
 }
 
-int heuristic(Coordinate p1, Coordinate p2) {
+int heuristic(const Coordinate& p1, const Coordinate& p2) {
     return abs(p1.first - p2.first) + abs(p1.second - p2.second);
+}
+
+void addToOpen(const Node& node, vector<Node>& openNodes, Board& board) {
+    openNodes.push_back(node);
+    board[node.x][node.y] = kClosed;
 }
 
 int main() {
