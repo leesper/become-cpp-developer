@@ -4,6 +4,7 @@
 #include <sstream>
 #include <string>
 #include <utility>
+#include <cstdlib>
 using std::vector;
 using std::cout;
 using std::endl;
@@ -12,6 +13,7 @@ using std::ifstream;
 using std::getline;
 using std::istringstream;
 using std::pair;
+using std::abs;
 
 enum State { kEmpty, kObstacle };
 typedef vector< vector<State> > Board;
@@ -74,6 +76,10 @@ Board search(Board board, Coordinate start, Coordinate goal) {
     cout << "No path found!" << endl;
     Board path;
     return path;
+}
+
+int heuristic(Coordinate p1, Coordinate p2) {
+    return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
 int main() {
