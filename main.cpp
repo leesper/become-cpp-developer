@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <utility>
 using std::vector;
 using std::cout;
 using std::endl;
@@ -10,8 +11,12 @@ using std::string;
 using std::ifstream;
 using std::getline;
 using std::istringstream;
+using std::pair;
 
 enum State { kEmpty, kObstacle };
+typedef vector< vector<State> > Board;
+typedef pair<int, int> Coordinate;
+typedef vector<State> Line;
 
 string cellString(State state) {
     string cell;
@@ -27,7 +32,7 @@ string cellString(State state) {
     return cell;
 }
 
-void printBoard(vector< vector<State> >& board) {
+void printBoard(Board& board) {
     for (auto line : board) {
         for (auto grid : line) {
             cout << cellString(grid);
@@ -36,27 +41,27 @@ void printBoard(vector< vector<State> >& board) {
     }
 }
 
-vector<State> parseLine(string line) {
-    int token;
+Line parseLine(string line) {
+    int mark;
     istringstream ss(line);
-    vector<State> tokens;
-    while (ss >> token) {
-        if (token == 0) {
-            tokens.push_back(kEmpty);
+    Line grids;
+    while (ss >> mark) {
+        if (mark == 0) {
+            grids.push_back(kEmpty);
         } else {
-            tokens.push_back(kObstacle);
+            grids.push_back(kObstacle);
         }
         if (ss.peek() == ',') {
             ss.ignore();
         }
     }
-    return tokens;
+    return grids;
 }
 
-vector< vector<State> > readBoardFile(string fileName) {
+Board readBoardFile(string fileName) {
     ifstream fin;
     string line;
-    vector< vector<State> > board;
+    Board board;
     fin.open(fileName);
     while (fin) {
         getline(fin, line);
@@ -65,9 +70,17 @@ vector< vector<State> > readBoardFile(string fileName) {
     return board;
 }
 
+Board search(Board board, Coordinate start, Coordinate goal) {
+    cout << "No path found!" << endl;
+    Board path;
+    return path;
+}
+
 int main() {
     auto board = readBoardFile("1.board");
     printBoard(board);
+    auto solution = search(board, {0, 0}, {4, 5});
+    printBoard(solution);
     return 0;
 }
 
