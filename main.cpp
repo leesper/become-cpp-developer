@@ -5,6 +5,7 @@
 #include <string>
 #include <utility>
 #include <cstdlib>
+#include <algorithm>
 using std::vector;
 using std::cout;
 using std::endl;
@@ -14,8 +15,9 @@ using std::getline;
 using std::istringstream;
 using std::pair;
 using std::abs;
+using std::sort;
 
-enum State { kEmpty, kObstacle, kClosed };
+enum State { kEmpty, kObstacle, kClosed, kPath };
 typedef vector< vector<State> > Board;
 typedef pair<int, int> Coordinate;
 typedef vector<State> Line;
@@ -87,11 +89,29 @@ Board readBoardFile(string fileName) {
     return board;
 }
 
+bool compare(const Node& one, const Node& two) {
+    return one.g + one.h > two.g + two.h;
+}
+
+void cellSort(vector<Node>& openNodes, bool (*cmp)(const Node& a, const Node& b)) {
+    sort(openNodes.begin(), openNodes.end(), cmp);
+}
+
 // FIXME
 Board search(Board& board, const Coordinate& start, const Coordinate& goal) {
     vector<Node> openNodes;
     Node node(start.first, start.second, 0, heuristic(start, goal));
     addToOpen(node, openNodes, board);
+    while (!openNodes.empty()) {
+        cellSort(openNodes, compare);
+        const Node& current = openNodes.back();
+        openNodes.pop_back();
+        board[current.x][current.y] = kPath;
+        if (current.x == goal.first && current.y == goal.second) {
+            return board;
+        }
+        // TODO: expandNeighbors();
+    }
     cout << "No path found!" << endl;
     Board path;
     return path;
