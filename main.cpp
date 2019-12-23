@@ -97,6 +97,36 @@ void cellSort(vector<Node>& openNodes, bool (*cmp)(const Node& a, const Node& b)
     sort(openNodes.begin(), openNodes.end(), cmp);
 }
 
+bool checkValidCell(int x, int y, const Board& board) {
+    bool isOnBoard = (0 <= x && x < board.size()) && (0 <= y && y <= board[0].size());
+    bool isEmpty = board[x][y] == kEmpty;
+    return isOnBoard && isEmpty;
+}
+
+int heuristic(const Coordinate& p1, const Coordinate& p2) {
+    return abs(p1.first - p2.first) + abs(p1.second - p2.second);
+}
+
+void addToOpen(const Node& node, vector<Node>& openNodes, Board& board) {
+    openNodes.push_back(node);
+    board[node.x][node.y] = kClosed;
+}
+
+void expandNeighbors(Node& current, vector<Node>& openNodes, Board& board, const Coordinate& goal) {
+    // directional deltas
+    const int delta[4][2]{{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+
+    for (int i = 0; i < 4; i++) {
+        int x2 = current.x + delta[i][0];
+        int y2 = current.y + delta[i][1];
+        if (checkValidCell(x2, y2, board)) {
+            int g = current.g + 1;
+            int h = heuristic(pair{x2, y2}, goal);
+            addToOpen(Node(x2, y2, g, h), openNodes, board);
+        }
+    } 
+}
+
 // FIXME
 Board search(Board& board, const Coordinate& start, const Coordinate& goal) {
     vector<Node> openNodes;
@@ -117,14 +147,6 @@ Board search(Board& board, const Coordinate& start, const Coordinate& goal) {
     return path;
 }
 
-int heuristic(const Coordinate& p1, const Coordinate& p2) {
-    return abs(p1.first - p2.first) + abs(p1.second - p2.second);
-}
-
-void addToOpen(const Node& node, vector<Node>& openNodes, Board& board) {
-    openNodes.push_back(node);
-    board[node.x][node.y] = kClosed;
-}
 
 int main() {
     auto board = readBoardFile("1.board");
