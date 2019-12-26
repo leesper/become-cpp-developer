@@ -17,10 +17,10 @@ using std::pair;
 using std::abs;
 using std::sort;
 
-enum State { kEmpty, kObstacle, kClosed, kPath };
+enum State { kEmpty, kObstacle, kClosed, kPath, kStart, kFinish };
 typedef vector< vector<State> > Board;
 typedef pair<int, int> Coordinate;
-typedef vector<State> Line;
+
 
 class Node {
     public:
@@ -36,17 +36,24 @@ class Node {
     int h;
 };
 
-// FIXME: handling kClosed
 string cellString(State state) {
-    string cell;
+    string cell = "0 ";
     switch (state)
     {
     case kObstacle:
-        cell = "⛰️ ";
-        break;
-    case kEmpty:
-        cell = "0 ";
-        break;
+    cell = "⛰️ ";
+    break;
+    case kStart:
+    cell = "🚦 ";
+    break;
+    case kFinish:
+    cell = "🏁 ";
+    break;
+    case kPath:
+    cell = "🚗 ";
+    break;
+    default:
+    break;
     }
     return cell;
 }
@@ -60,10 +67,10 @@ void printBoard(Board& board) {
     }
 }
 
-Line parseLine(string line) {
+vector<State> parseLine(string line) {
     int mark;
     istringstream ss(line);
-    Line grids;
+    vector<State> grids;
     while (ss >> mark) {
         if (mark == 0) {
             grids.push_back(kEmpty);
@@ -82,8 +89,7 @@ Board readBoardFile(string fileName) {
     string line;
     Board board;
     fin.open(fileName);
-    while (fin) {
-        getline(fin, line);
+    while (getline(fin, line)) {
         board.push_back(parseLine(line));
     }
     return board;
@@ -93,14 +99,16 @@ bool compare(const Node& one, const Node& two) {
     return one.g + one.h > two.g + two.h;
 }
 
-void cellSort(vector<Node>& openNodes, bool (*cmp)(const Node& a, const Node& b)) {
-    sort(openNodes.begin(), openNodes.end(), cmp);
+void cellSort(vector<Node>& openNodes) {
+    sort(openNodes.begin(), openNodes.end(), compare);
 }
 
 bool checkValidCell(int x, int y, const Board& board) {
-    bool isOnBoard = (0 <= x && x < board.size()) && (0 <= y && y <= board[0].size());
-    bool isEmpty = board[x][y] == kEmpty;
-    return isOnBoard && isEmpty;
+    bool isOnBoard = (0 <= x && x < board.size()) && (0 <= y && y < board[0].size());
+    if (isOnBoard) {
+        return board[x][y] == kEmpty;
+    }
+    return false;
 }
 
 int heuristic(const Coordinate& p1, const Coordinate& p2) {
@@ -112,7 +120,7 @@ void addToOpen(const Node& node, vector<Node>& openNodes, Board& board) {
     board[node.x][node.y] = kClosed;
 }
 
-void expandNeighbors(Node& current, vector<Node>& openNodes, Board& board, const Coordinate& goal) {
+void expandNeighbors(const Node& current, vector<Node>& openNodes, Board& board, const Coordinate& goal) {
     // directional deltas
     const int delta[4][2]{{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
 
@@ -127,31 +135,32 @@ void expandNeighbors(Node& current, vector<Node>& openNodes, Board& board, const
     } 
 }
 
-// FIXME
 Board search(Board& board, const Coordinate& start, const Coordinate& goal) {
+
     vector<Node> openNodes;
     Node node(start.first, start.second, 0, heuristic(start, goal));
     addToOpen(node, openNodes, board);
     while (!openNodes.empty()) {
-        cellSort(openNodes, compare);
-        const Node& current = openNodes.back();
+        cellSort(openNodes);
+        const Node current = openNodes.back();
         openNodes.pop_back();
         board[current.x][current.y] = kPath;
         if (current.x == goal.first && current.y == goal.second) {
+            board[start.first][start.second] = kStart;
+            board[goal.first][goal.second] = kFinish;
             return board;
         }
-        // TODO: expandNeighbors();
+        expandNeighbors(current, openNodes, board, goal);
     }
     cout << "No path found!" << endl;
-    Board path;
-    return path;
+    return Board{};
 }
-
 
 int main() {
     auto board = readBoardFile("1.board");
     printBoard(board);
     auto solution = search(board, {0, 0}, {4, 5});
+    cout << "solution: " << endl;
     printBoard(solution);
     return 0;
 }
